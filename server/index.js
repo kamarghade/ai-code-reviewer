@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import bodyParser from 'body-parser';
 import OpenAI from "openai";
+import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();
 
@@ -24,6 +25,11 @@ app.use(bodyParser.json());
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+// The client gets the API key from the environment variable `GEMINI_API_KEY`.
+const gemini = new GoogleGenAI({
+    apiKey: process.env.GEMINI_API_KEY
+});
+
 app.post('/api/explainer', async (req, res) => {
     try {
         const { message, lang } = req.body;
@@ -42,16 +48,28 @@ app.post('/api/explainer', async (req, res) => {
             return res.status(500).json({ error: 'API key not configured' });
         }
 
-        const response = await client.responses.create({
-            model: "gpt-5-nano",
-            input: `Please explain ${lang} code for below snippet:\n${message}`,
-            tools: [{ type: 'web_search_preview' }],
+        // Gemini AI Tool
+        const response = await gemini.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: `Please explain ${lang} code for below snippet:\n${message}`,
         });
-        
+
         res.status(200).json({
-            answer: response?.output_text,
+            answer: response?.text,
             timestamp: new Date().toISOString(),
         });
+
+        // Open AI Tool
+        // const response = await client.responses.create({
+        //     model: "gpt-5-nano",
+        //     input: `Please explain ${lang} code for below snippet:\n${message}`,
+        //     tools: [{ type: 'web_search_preview' }],
+        // });
+        
+        // res.status(200).json({
+        //     answer: response?.output_text,
+        //     timestamp: new Date().toISOString(),
+        // });
     } catch (error) {
         res.status(500).json({
             error: error.message,
@@ -77,16 +95,30 @@ app.post('/api/optimizer', async (req, res) => {
             return res.status(500).json({ error: 'API key not configured' });
         }
 
-        const response = await client.responses.create({
-            model: "gpt-5-nano",
-            input: `Please optimize the below ${lang} code:\n${message}`,
-            tools: [{ type: 'web_search_preview' }],
+        // Gemini AI Tool
+        const response = await gemini.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: `Please optimize the below ${lang} code:\n${message}`,
         });
-        
+
         res.status(200).json({
-            answer: response?.output_text,
+            answer: response?.text,
             timestamp: new Date().toISOString(),
         });
+
+
+        // const response = await client.responses.create({
+        //     model: "gpt-5-nano",
+        //     input: `Please optimize the below ${lang} code:\n${message}`,
+        //     tools: [{ type: 'web_search_preview' }],
+        // });
+        // // mock response
+        // // {"message":"fetch('https://jsonplaceholder.typicode.com/users/1')\n.then(res => res.json())\n.then(data => console.log(data))\n.catch(err => console.error('Error:', err));","lang":"javascript"}
+
+        // res.status(200).json({
+        //     answer: response?.output_text,
+        //     timestamp: new Date().toISOString(),
+        // });
     } catch (error) {
         res.status(500).json({
             error: error.message,

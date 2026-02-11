@@ -78,11 +78,13 @@ const MainContainer = () => {
         isLoading,
         onLangaugeChange,
         selectedLang,
+        answers,
     }), [
         userInput,
         selectedTab,
         isLoading,
         selectedLang,
+        JSON.stringify(answers),
     ]);
 
     return (

@@ -4,7 +4,7 @@ import { oneLight, oneDark } from 'react-syntax-highlighter/dist/esm/styles/pris
 import GlobalContext from '../context/globalContext.context';
 
 const ResultOfInput = () => {
-    const { userInput, selectedTab, onSubmit, selectedLang } = useContext(GlobalContext);
+    const { userInput, selectedTab, onSubmit, selectedLang, answers } = useContext(GlobalContext);
 
     const onCodeOptimizerClicked = () => {
         onSubmit('code-optimizer');
@@ -28,7 +28,7 @@ const ResultOfInput = () => {
                     }}
                     showLineNumbers={true}
                     >
-                    {userInput}
+                    {answers[selectedTab]}
                 </SyntaxHighlighter>
             </div>
         </>
