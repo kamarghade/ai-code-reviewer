@@ -23,9 +23,9 @@ const InputPreview = () => {
     return (
         <>
             <h4 className='section-title'>Input Preview</h4>
-            <div className='section-buttons'>
+            {/* <div className='section-buttons'>
                 <button onClick={onBtnClick} disabled={!userInput || !isSaveAndNextEnabled}>{BUTTON_LABELS?.['code-explainer']}</button>
-            </div>
+            </div> */}
             <div>
                 <SyntaxHighlighter
                     language={selectedLang}
@@ -37,7 +37,7 @@ const InputPreview = () => {
                         fontSize: '14px'
                     }}
                     showLineNumbers={true}
-                    >
+                >
                     {userInput}
                 </SyntaxHighlighter>
             </div>

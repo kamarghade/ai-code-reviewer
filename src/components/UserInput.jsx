@@ -32,6 +32,7 @@ const UserInput = () => {
                     placeholder='Provide snippet that you want to process...'
                     style={{ fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace' }}
                 />
+                <p className='text-sm text-gray-600 dark:text-gray-400 mt-2'>Note: Maximum 1000 lines of code allowed.</p>
             </div>
         </>
     );
