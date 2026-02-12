@@ -2,7 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import fs from 'fs';
-import path from 'path';
+import { fileURLToPath } from 'url';
+import path, { dirname } from 'path';
 import bodyParser from 'body-parser';
 import OpenAI from "openai";
 import { GoogleGenAI } from "@google/genai";
@@ -29,6 +30,11 @@ const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const gemini = new GoogleGenAI({
     apiKey: process.env.GEMINI_API_KEY
 });
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+app.use(express.static(path.join(__dirname, '../build')));
 
 app.post('/api/explainer', async (req, res) => {
     try {
@@ -285,6 +291,10 @@ app.get('/api/health', (req, res) => {
         status: 'OK',
         timestamp: new Date().toISOString(),
     });
+});
+
+app.get('/', function (req, res) {
+  res.sendFile(path.join(__dirname, '../build', 'index.html'));
 });
 
 app.listen(PORT, () => {
