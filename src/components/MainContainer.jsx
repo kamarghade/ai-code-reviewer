@@ -3,6 +3,7 @@ import flourite from 'flourite';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { API_BASE_URL, CODE_LANGUAGES } from '../consts';
+import HistorySidebar from './HistorySidebar';
 import '../styles/container.css';
 
 const MainContainer = () => {
@@ -21,8 +22,24 @@ const MainContainer = () => {
 
   const [error, setError] = useState('');
 
+  // History State
+  const [history, setHistory] = useState([]);
+  const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState(false);
+
   // Ref for AI Response section
   const aiResponseRef = useRef(null);
+
+  // Load history from LocalStorage on mount
+  useEffect(() => {
+    const savedHistory = localStorage.getItem('aiAssistantHistory');
+    if (savedHistory) {
+      try {
+        setHistory(JSON.parse(savedHistory));
+      } catch (e) {
+        console.error('Failed to load history:', e);
+      }
+    }
+  }, []);
 
   // Auto-scroll to AI response when result is received
   useEffect(() => {
@@ -112,7 +129,11 @@ const MainContainer = () => {
       }
 
       const data = await resp.json();
-      setOptimizerResult(data?.answer || 'No response received');
+      const result = data?.answer || 'No response received';
+      setOptimizerResult(result);
+
+      // Save to history
+      saveToHistory(codeInput, selectedLang, result);
     } catch (error) {
       setError('Unable to fetch optimization response');
       console.error(error);
@@ -145,7 +166,11 @@ const MainContainer = () => {
       }
 
       const data = await resp.json();
-      setReadmeResult(data.answer);
+      const result = data.answer;
+      setReadmeResult(result);
+
+      // Save to history
+      saveToHistory(repoUrl, 'github-readme', result, 'readme');
     } catch (err) {
       setError(err.message);
       console.error(err);
@@ -163,6 +188,60 @@ const MainContainer = () => {
     a.download = 'README.md';
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  // Save to history with deduplication
+  const saveToHistory = (input, lang, result, type = 'optimizer') => {
+    const newHistory = [...history];
+
+    // Check if same input already exists
+    const existingIndex = newHistory.findIndex(item => item.input === input && item.type === type);
+
+    const historyItem = {
+      id: Date.now(),
+      input: input,
+      lang: lang,
+      type: type, // 'optimizer' or 'readme'
+      answers: {
+        [type === 'optimizer' ? 'code-optimizer' : 'generate-readme']: result
+      }
+    };
+
+    if (existingIndex !== -1) {
+      // Update existing entry
+      newHistory[existingIndex] = historyItem;
+    } else {
+      // Add new entry at the beginning
+      newHistory.unshift(historyItem);
+
+      // Keep only last 10 entries
+      if (newHistory.length > 10) {
+        newHistory.pop();
+      }
+    }
+
+    setHistory(newHistory);
+    localStorage.setItem('aiAssistantHistory', JSON.stringify(newHistory));
+  };
+
+  // Load from history
+  const handleHistorySelect = (item) => {
+    if (item.type === 'optimizer') {
+      setSelectedMode('optimizer');
+      setCodeInput(item.input);
+      setSelectedLang(item.lang);
+      setOptimizerResult(item.answers['code-optimizer'] || '');
+    } else {
+      setSelectedMode('readme');
+      setRepoUrl(item.input);
+      setReadmeResult(item.answers['generate-readme'] || '');
+    }
+    // We keep sidebar open as user requested it to be sticky/readable now
+  };
+
+  // Toggle history sidebar
+  const toggleHistorySidebar = () => {
+    setIsHistorySidebarOpen(!isHistorySidebarOpen);
   };
 
   return (
@@ -355,6 +434,14 @@ const MainContainer = () => {
           </div>
         )}
       </div>
+
+      {/* History Sidebar */}
+      <HistorySidebar
+        history={history}
+        onSelect={handleHistorySelect}
+        isOpen={isHistorySidebarOpen}
+        toggleSidebar={toggleHistorySidebar}
+      />
     </section>
   );
 };
