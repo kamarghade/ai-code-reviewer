@@ -1,4 +1,5 @@
-export const API_BASE_URL = 'https://node-server-070u.onrender.com';
+// export const API_BASE_URL = 'https://node-server-070u.onrender.com';
+export const API_BASE_URL = 'https://react-node-ai.onrender.com';
 // export const API_BASE_URL = 'http://localhost:8080';
 
 export const TABS = [
